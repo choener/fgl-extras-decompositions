@@ -1,0 +1,31 @@
+Name:           fgl-ear-decomposition
+Version:        0.1.0.0
+License:        BSD3
+License-file:   LICENSE
+Author:         Christian Hoener zu Siederdissen
+Maintainer:     choener@tbi.univie.ac.at
+Copyright:      Christian Hoener zu Siederdissen, 2013
+Homepage:       http://www.tbi.univie.ac.at/~choener/
+Stability:      Experimental
+Category:       Data
+Build-type:     Simple
+Cabal-version:  >=1.6
+Synopsis:
+                Ear decomposition for the fgl
+Description:
+                This library provides an implementation of the ear
+                decomposition for use with the fg.
+
+Library
+  Exposed-modules:
+    Data.Graph.Inductive.Query.Ear
+  Build-depends:
+    base        >= 4 && <5  ,
+    fgl         >= 5.4
+  ghc-options:
+    -O2
+
+source-repository head
+  type: git
+  location: git://github.com/choener/PrimitiveArray
+
