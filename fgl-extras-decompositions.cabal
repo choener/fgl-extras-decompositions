@@ -1,4 +1,4 @@
-Name:           fgl-ear-decomposition
+Name:           fgl-extras-decompositions
 Version:        0.1.0.0
 License:        BSD3
 License-file:   LICENSE
@@ -14,7 +14,7 @@ Synopsis:
                 Ear decomposition for the fgl
 Description:
                 This library provides an implementation of the ear
-                decomposition for use with the fg.
+                decomposition for use with the fgl.
 
 Library
   Exposed-modules:
