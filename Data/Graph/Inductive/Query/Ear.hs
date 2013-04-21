@@ -40,7 +40,9 @@ shortestPaths g (u,v) = (u,v,spLength u v g') where
   g' = delEdge (u,v) $ delEdge (v,u) g
 
 lca :: [[Node]] -> (LEdge ()) -> (LEdge Int)
-lca ps (u,v,()) = (u,v,) . (subtract 1) . length . filter (uncurry (==)) $ zip u' v' where
+lca ps (u,v,())
+  | any null ps = error $ "null path: " ++ show ps
+  | otherwise = (u,v,) . (subtract 1) . length . filter (uncurry (==)) $ zip u' v' where
   [u'] = filter ((==u) . last) ps
   [v'] = filter ((==v) . last) ps
 
