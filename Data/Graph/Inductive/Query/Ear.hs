@@ -17,7 +17,7 @@ import Data.Tuple
 
 
 
-ears :: Gr () () -> Gr () Int
+ears :: forall gr . DynGraph gr => gr () () -> gr () Int
 ears g
   | isConnected g = gWs
   | otherwise = error "called ears on disconnected graph"
@@ -30,10 +30,10 @@ ears g
     -- gE is the graph of all edges not in the spanning tree. The edge weight
     -- is the distance between the tree root and the lowest common ancestor of
     -- the two nodes making up each edge
-    gE :: Gr () Int  = mkGraph (labNodes g') (map (lca tps) $ labEdges g')
-    gE' :: Gr () Int = mkGraph (labNodes gE) (labEdges gE ++ map (\(a,b) -> (a,b,0)) (te ++ map swap te))
+    gE :: gr () Int  = mkGraph (labNodes g') (map (lca tps) $ labEdges g')
+    gE'  = mkGraph (labNodes gE) (labEdges gE ++ map (\(a,b) -> (a,b,0)) (te ++ map swap te))
     teWs = map (shortestPaths gE') te
-    gWs :: Gr () Int = mkGraph (labNodes g') (labEdges gE ++ teWs ++ map swap12 teWs)
+    gWs  = mkGraph (labNodes g') (labEdges gE ++ teWs ++ map swap12 teWs)
 
 shortestPaths :: Gr () Int -> Edge -> LEdge Int
 shortestPaths g (u,v) = (u,v,spLength u v g') where
