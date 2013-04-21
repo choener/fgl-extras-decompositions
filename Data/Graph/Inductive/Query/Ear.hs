@@ -17,89 +17,66 @@ import Data.Tuple
 
 
 
--- test = ears $ undir dag4
-test = let g = (undir $ dag4 ) -- ucycle 6 :: Gr () ())
-       in do print g
-             print ""
-             print $ ears g
+ears :: Gr () () -> Gr () Int
+ears g
+  | isConnected g = gWs
+  | otherwise = error "called ears on disconnected graph"
+  where
+    t :: Tree Node
+    [t] = dff' g
+    tps = treeToPaths t
+    te = treeToEdges t
+    g' = mkUGraph (nodes g) ((edges g \\ te) \\ (map swap te)) `asTypeOf` g
+    -- gE is the graph of all edges not in the spanning tree. The edge weight
+    -- is the distance between the tree root and the lowest common ancestor of
+    -- the two nodes making up each edge
+    gE :: Gr () Int  = mkGraph (labNodes g') (map (lca tps) $ labEdges g')
+    gE' :: Gr () Int = mkGraph (labNodes gE) (labEdges gE ++ map (\(a,b) -> (a,b,0)) (te ++ map swap te))
+    teWs = map (shortestPaths gE') te
+    gWs :: Gr () Int = mkGraph (labNodes g') (labEdges gE ++ teWs ++ map swap12 teWs)
 
--- | Perform the actual decomposition
---
--- TODO fix type!
+shortestPaths :: Gr () Int -> Edge -> LEdge Int
+shortestPaths g (u,v) = (u,v,spLength u v g') where
+  g' = delEdge (u,v) $ delEdge (v,u) g
 
--- ears :: DynGraph gr => gr a b -> [gr a b]
-ears g = (groupBy ((==) `on` sel3) $ sortBy (compare `on` sel3) $ filter (uncurry (<) . sel12) $ remEdges ++ treEdges) where
-  mst :: Tree Node
-  [mst] = dff' g
-  tes   = mkEdges mst
-  treeg :: Gr () () = mkUGraph (nub $ map fst tes ++ map snd tes) tes
-  grt   = delEdges (tes ++ map swap tes) g
-  uvs   = edges grt
-  ps    = mkPaths mst
-  g' :: Gr () Int = mkGraph (map (,()) $ nodes g) [] -- (remEdges ++ treEdges)
-  remEdges = sort [(x,y,length $ path ps x y) | (x,y) <- uvs]
-  treEdges = sort [(x,y, lambdaT x y) | (x,y) <- tes]
-  lambdaT x y = minimum $ 99999 : [ l | (u,v,l) <- remEdges
-                                  , let u' = nodePath ps u
-                                  , let v' = nodePath ps v
-                                  , let uvp = toPath u' \\ toPath v'
-                                  , let vup = toPath v' \\ toPath u'
-                                  , (x,y) `elem` uvp || (x,y) `elem` vup || (y,x) `elem` uvp || (y,x) `elem` vup
-                                  ]
-  es = map (map sel12)
-     . groupBy ((==) `on` sel3)
-     . filter ((<99999) . sel3)
-     . sortBy (compare `on` sel3)
-     $ labEdges g'
-  zs = (remEdges,treEdges)
-  dbg = (1,2, [ (u,v,l,u',v')
-              | (u,v,l) <- remEdges
-              , let u' = nodePath ps u
-              , let v' = nodePath ps v
-              ]
-          )
+lca :: [[Node]] -> (LEdge ()) -> (LEdge Int)
+lca ps (u,v,()) = (u,v,) . (subtract 1) . length . filter (uncurry (==)) $ zip u' v' where
+  [u'] = filter ((==u) . last) ps
+  [v'] = filter ((==v) . last) ps
 
 swap12 (a,b,c) = (b,a,c)
-sel12 (a,b,_) = (a,b)
+
 sel3 (_,_,s) = s
-
-inPath (x,y) = f where
-  f []  = False
-  f [u] = False
-  f (u:v:ws) = x==u && y==v || f (v:ws)
-
-toPath :: [Node] -> [Edge]
-toPath [] = []
-toPath [x] = []
-toPath (x:y:zs) = (x,y) : toPath (y:zs)
-
--- tree path for a node
-
-nodePath :: [[Node]] -> Node -> [Node]
-nodePath ps n = head $ filter ((==n) . last) ps
-
--- unique path
-
-uniquePathFst :: [[Node]] -> Node -> Node -> [Node]
-uniquePathFst ps a b = map fst $ dropWhile (uncurry (==)) $ zip as bs where
-  [as] = filter ((==a) . last) $ ps
-  [bs] = filter ((==b) . last) $ ps
-
--- common path
-
-path :: [[Node]] -> Node -> Node -> [Node]
-path ps a b = map fst $ takeWhile (uncurry (==)) $ zip as bs where
-  [as] = filter ((==a) . last) $ ps
-  [bs] = filter ((==b) . last) $ ps
 
 -- tree edges
 
-mkEdges :: Tree Node -> [Edge]
-mkEdges (Node _ []) = []
-mkEdges (Node k xs) = map ((k,) . rootLabel) xs ++ concatMap mkEdges xs
+treeToEdges :: Tree Node -> [Edge]
+treeToEdges (Node _ []) = []
+treeToEdges (Node k xs) = map ((k,) . rootLabel) xs ++ concatMap treeToEdges xs
 
 -- paths
+treeToPaths :: Tree Node -> [[Node]]
+treeToPaths (Node k []) = [[k]]
+treeToPaths (Node k xs) = [[k]] ++ [ (k:ys) | ys <- concatMap treeToPaths xs ]
 
-mkPaths :: Tree Node -> [[Node]]
-mkPaths (Node k []) = [[k]]
-mkPaths (Node k xs) = [[k]] ++ [ (k:ys) | ys <- concatMap mkPaths xs ]
+
+
+{-
+ - Test graph
+ -
+
+fig13 :: Gr () ()
+fig13 = undir $ mkUGraph ns es where
+  ns = [1..9]
+  es = [ (1,2),(1,4)
+       , (2,3),(2,5)
+       , (3,4),(3,6)
+       , (4,7)
+       , (5,6),(5,8)
+       , (6,7)
+       , (7,9)
+       , (8,9)
+       ]
+
+-}
+
