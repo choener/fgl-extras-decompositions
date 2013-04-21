@@ -5,17 +5,21 @@
 
 module Data.Graph.Inductive.Query.Ear where
 
-import Data.Graph.Inductive.Query
-import Data.Graph.Inductive.Example
-import Data.Tree
-import Data.Graph.Inductive.Graph
+import Data.Function
 import Data.Graph.Inductive.Basic
+import Data.Graph.Inductive.Example
+import Data.Graph.Inductive.Graph
+import Data.Graph.Inductive.Query
 import Data.Graph.Inductive.Tree
 import Data.List
-import Data.Function
+import Data.Tree
 import Data.Tuple
 
 
+
+-- | The 'ears' function takes a graph with no node or edge annotation and
+-- produces an ear decomposition. Each edge is annotated with a weight. Edges
+-- with the same weight are in the same ear.
 
 ears :: forall gr . DynGraph gr => gr () () -> gr () Int
 ears g
