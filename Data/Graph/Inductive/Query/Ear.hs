@@ -20,28 +20,38 @@ import Data.Tuple
 -- | The 'ears' function takes a graph with no node or edge annotation and
 -- produces an ear decomposition. Each edge is annotated with a weight. Edges
 -- with the same weight are in the same ear.
+-- Maon, Schieber, Vishkin (1986)
 
 ears :: forall gr . DynGraph gr => gr () () -> gr () Int
 ears g
   | isConnected g = gWs
   | otherwise = error "called ears on disconnected graph"
   where
+    -- (1.1) create spanning tree
     t :: Tree Node
     [t] = dff' g
     tps = treeToPaths t
     te = treeToEdges t
+    -- (1.2) graph without spanning tree edges
     g' = mkUGraph (nodes g) ((edges g \\ te) \\ (map swap te)) `asTypeOf` g
-    -- gE is the graph of all edges not in the spanning tree. The edge weight
-    -- is the distance between the tree root and the lowest common ancestor of
-    -- the two nodes making up each edge
+    -- (2) gE is the graph of all edges not in the spanning tree. The edge
+    -- weight is the distance between the tree root and the lowest common
+    -- ancestor of the two nodes making up each edge
     gE :: gr () Int  = mkGraph (labNodes g') (map (lca tps) $ labEdges g')
+    -- (3.1) add back all tree edges (in both directions)
     gE'  = mkGraph (labNodes gE) (labEdges gE ++ map (\(a,b) -> (a,b,0)) (te ++ map swap te))
+    -- (3.2) for each edge in the tree, find the shortest-path weight
+    -- TODO on second thought, is this right?
     teWs = map (shortestPaths gE') te
+    -- build a new graph, adding edge weights, where all edges with the same
+    -- weight belong to the same ear
     gWs  = mkGraph (labNodes g') (labEdges gE ++ teWs ++ map swap12 teWs)
 
 shortestPaths :: Gr () Int -> Edge -> LEdge Int
 shortestPaths g (u,v) = (u,v,spLength u v g') where
   g' = delEdge (u,v) $ delEdge (v,u) g
+
+-- | Lowest common ancestor calculation
 
 lca :: [[Node]] -> (LEdge ()) -> (LEdge Int)
 lca ps (u,v,())
@@ -61,6 +71,7 @@ treeToEdges (Node _ []) = []
 treeToEdges (Node k xs) = map ((k,) . rootLabel) xs ++ concatMap treeToEdges xs
 
 -- paths
+
 treeToPaths :: Tree Node -> [[Node]]
 treeToPaths (Node k []) = [[k]]
 treeToPaths (Node k xs) = [[k]] ++ [ (k:ys) | ys <- concatMap treeToPaths xs ]
