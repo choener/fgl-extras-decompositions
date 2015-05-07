@@ -1,17 +1,17 @@
 Name:           fgl-extras-decompositions
-Version:        0.1.0.0
+Version:        0.1.1.0
 License:        BSD3
 License-file:   LICENSE
 Author:         Christian Hoener zu Siederdissen
-Maintainer:     choener@tbi.univie.ac.at
-Copyright:      Christian Hoener zu Siederdissen, 2013
-Homepage:       http://www.tbi.univie.ac.at/~choener/
+Maintainer:     choener@bioinf.uni-leipzig.de
+Copyright:      Christian Hoener zu Siederdissen, 2013 - 2015
+Homepage:       http://www.bioinf.uni-leipzig.de/~choener/
 Stability:      Experimental
 Category:       Data Structures, Graphs
 Build-type:     Simple
-Cabal-version:  >=1.6
-Synopsis:
-                Graph decomposition algorithms
+Cabal-version:  >= 1.10
+tested-with:    GHC == 7.8.4, GHC == 7.10.1
+Synopsis:       Graph decomposition algorithms
 Description:
                 Graph decompositions of fgl graphs. This library is rather
                 experimental.
@@ -24,13 +24,24 @@ Description:
                 .
                 Patches and ideas welcome.
 
+
+
+extra-source-files:
+  changelog.md
+  README.md
+
+
+
 Library
   Exposed-modules:
     Data.Graph.Inductive.Query.Ear
-  Build-depends:
-    base        >= 4 && <5  ,
-    containers              ,
-    fgl         >= 5.4
+  Build-depends: base        >= 4     && <5
+               , containers
+               , fgl         >= 5.4   && < 5.6
+  default-language:
+    Haskell2010
+  default-extensions: ScopedTypeVariables
+                    , TupleSections
   ghc-options:
     -O2
 
